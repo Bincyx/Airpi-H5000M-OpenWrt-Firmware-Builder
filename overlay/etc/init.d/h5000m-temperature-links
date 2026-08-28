@@ -1,0 +1,50 @@
+#!/bin/sh /etc/rc.common
+
+START=19
+USE_PROCD=0
+
+link_sensor() {
+	local source="$1"
+	local target="$2"
+
+	[ -r "$source" ] || return 1
+	ln -sfn "$source" "$target"
+}
+
+start() {
+	rm -f /tmp/h5000m-cpu-temp /tmp/h5000m-wifi-temp /tmp/h5000m-wifi2-temp
+
+	for zone in /sys/class/thermal/thermal_zone*; do
+		[ -r "$zone/temp" ] || continue
+		type="$(cat "$zone/type" 2>/dev/null)"
+		case "$type" in
+			*cpu*|*CPU*|*soc*|*SoC*|*mt7987*)
+				link_sensor "$zone/temp" /tmp/h5000m-cpu-temp && break
+				;;
+		esac
+	done
+
+	[ -e /tmp/h5000m-cpu-temp ] || \
+		link_sensor /sys/class/thermal/thermal_zone0/temp /tmp/h5000m-cpu-temp || true
+
+	wifi_index=0
+	seen_sensors=' '
+	for sensor in /sys/class/ieee80211/phy*/device/hwmon/hwmon*/temp1_input \
+		/sys/class/hwmon/hwmon*/temp1_input; do
+		[ -r "$sensor" ] || continue
+		sensor="$(readlink -f "$sensor")"
+		case "$seen_sensors" in *" $sensor "*) continue ;; esac
+		seen_sensors="$seen_sensors$sensor "
+		name="$(cat "${sensor%/temp1_input}/name" 2>/dev/null)"
+		case "$name" in
+			*mt76*|*mt79*|*wifi*|*phy*) ;;
+			*) continue ;;
+		esac
+
+		case "$wifi_index" in
+			0) link_sensor "$sensor" /tmp/h5000m-wifi-temp || true ;;
+			1) link_sensor "$sensor" /tmp/h5000m-wifi2-temp || true; break ;;
+		esac
+		wifi_index=$((wifi_index + 1))
+	done
+}
