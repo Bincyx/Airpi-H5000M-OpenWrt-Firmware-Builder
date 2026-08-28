@@ -17,10 +17,11 @@ cd "$workspace"
 
 rm -f .config
 
-# QModem is not part of the standard OpenWrt feeds. Register its
-# official source before updating feeds so luci-app-qmodem-next is available.
-if ! grep -Eq '^src-git(-full)?[[:space:]]+qmodem[[:space:]]' feeds.conf.default; then
-  printf '%s\n' 'src-git qmodem https://github.com/FUjr/QModem.git;main' >> feeds.conf.default
+# QModem is a build-time source feed, not a runtime APK repository. Keep the
+# upstream defaults untouched so its Git URL cannot leak into firmware.
+test -f feeds.conf || cp feeds.conf.default feeds.conf
+if ! grep -Eq '^src-git(-full)?[[:space:]]+qmodem[[:space:]]' feeds.conf; then
+  printf '%s\n' 'src-git qmodem https://github.com/FUjr/QModem.git;main' >> feeds.conf
 fi
 
 ./scripts/feeds update -a
