@@ -14,8 +14,9 @@ on:
         type: boolean
         default: false
   schedule:
-    # Check the selected upstream branch daily at 04:00 Asia/Taipei.
-    - cron: '0 20 * * *'
+    # Check the selected upstream branch monthly at 04:00 Asia/Taipei on day 2.
+    # Manual builds remain available through workflow_dispatch at any time.
+    - cron: '0 20 1 * *'
 
 concurrency:
   group: h5000m-firmware
