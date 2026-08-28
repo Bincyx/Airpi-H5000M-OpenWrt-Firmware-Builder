@@ -8,7 +8,7 @@ An independent cloud build project for the Hiveton / AirPi H5000M. It builds fir
 - The firmware defaults to the `Asia/Taipei` timezone.
 - QModem, MBIM, QMI, and common USB 5G modem support.
 - CPU and Wi-Fi temperatures on the LuCI status overview.
-- Jerrykuku's Argon theme and Argon configuration app.
+- sbwml's `openwrt-24.10` Argon theme with the squarer interface style, plus OpenWrt 25/APK compatibility fixes.
 - ccache, download cache, and host toolchain cache for faster rebuilds.
 - Daily upstream checks at 04:00 in Taiwan, plus manual builds.
 - Every release includes firmware, the resolved build configuration, and SHA256 checksums.
