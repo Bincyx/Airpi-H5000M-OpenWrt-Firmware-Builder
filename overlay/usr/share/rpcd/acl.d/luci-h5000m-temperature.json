@@ -1,0 +1,15 @@
+{
+	"luci-h5000m-temperature": {
+		"description": "Read H5000M CPU and Wi-Fi temperatures",
+		"read": {
+			"file": {
+				"/tmp/h5000m-cpu-temp": [ "read" ],
+				"/tmp/h5000m-wifi-temp": [ "read" ],
+				"/tmp/h5000m-wifi2-temp": [ "read" ]
+			},
+			"ubus": {
+				"file": [ "read" ]
+			}
+		}
+	}
+}
