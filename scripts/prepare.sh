@@ -37,16 +37,28 @@ find feeds/luci feeds/packages -maxdepth 3 -type d \
   -prune -exec rm -rf {} + 2>/dev/null || true
 rm -rf package/luci-theme-argon package/luci-app-argon-config
 
-# Fetch the current Argon source containing both theme and config directories.
+# Use the OpenWrt 24.10 Argon style, which has the preferred squarer layout.
 argon_tmp="$(mktemp -d)"
-git clone --depth 1 https://github.com/sbwml/luci-theme-argon.git "$argon_tmp"
+git clone --branch openwrt-24.10 --depth 1 \
+  https://github.com/sbwml/luci-theme-argon.git "$argon_tmp"
 mv "$argon_tmp/luci-theme-argon" package/luci-theme-argon
 mv "$argon_tmp/luci-app-argon-config" package/luci-app-argon-config
 rm -rf "$argon_tmp"
 
-# The upstream supports both APK and IPK.
-sed -i 's/^LUCI_DEPENDS:=.*/LUCI_DEPENDS:=+wget +jsonfilter/' \
+# Keep the 24.10 visuals while using dependencies that are safe with the
+# OpenWrt 25 APK package manager. In particular, do not pull in wget-nossl,
+# which can replace apk's HTTPS-capable downloader.
+sed -i 's/^LUCI_DEPENDS:=.*/LUCI_DEPENDS:=+curl +jsonfilter/' \
   package/luci-theme-argon/Makefile
+
+# OpenWrt 25 renamed the LuCI software page from opkg to package-manager.
+# Apply the existing 24.10 styling to both page identifiers.
+for stylesheet in \
+  package/luci-theme-argon/htdocs/luci-static/argon/css/cascade.css \
+  package/luci-theme-argon/htdocs/luci-static/argon/css/dark.css; do
+  sed -i 's/\[data-page="admin-system-opkg"\]/:is([data-page="admin-system-opkg"],[data-page="admin-system-package-manager"])/g' \
+    "$stylesheet"
+done
 
 # Validate argon-config package
 argon_config_makefile='package/luci-app-argon-config/Makefile'
@@ -110,6 +122,7 @@ for forbidden in \
   'CONFIG_PACKAGE_luci-app-qmodem-mwan=y' \
   'CONFIG_PACKAGE_luci-app-qmodem-ttl=y' \
   'CONFIG_PACKAGE_luci-app-qmodem-hc=y' \
+  'CONFIG_PACKAGE_wget-nossl=y' \
   'CONFIG_PACKAGE_libustream-mbedtls=y' \
   'CONFIG_PACKAGE_libustream-mbedtls20201210=y'; do
   if grep -Fqx "$forbidden" .config; then
@@ -124,7 +137,7 @@ else
   printf 'AdGuard Home: disabled by workflow input\n' > .adguardhome-buildinfo
 fi
 
-printf 'Argon theme source: sbwml/luci-theme-argon\nArgon config: %s (sbwml source, built as IPK; 0.9.x rejected)\n' \
+printf 'Argon theme source: sbwml/luci-theme-argon openwrt-24.10\nArgon config: %s (24.10 visuals with OpenWrt 25/APK compatibility; 0.9.x rejected)\n' \
   "$argon_config_version" > .argon-buildinfo
 
 echo 'Build configuration is ready.'
