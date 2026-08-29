@@ -92,6 +92,7 @@ make defconfig
 
 for required in \
   'CONFIG_PACKAGE_luci-app-qmodem-next=y' \
+  'CONFIG_PACKAGE_luci-app-qmodem-ttlfw4=y' \
   'CONFIG_PACKAGE_qmodem=y' \
   'CONFIG_PACKAGE_ndisc6=y' \
   'CONFIG_TARGET_mediatek_filogic_DEVICE_hiveton_h5000m=y' \
